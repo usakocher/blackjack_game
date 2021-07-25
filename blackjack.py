@@ -24,6 +24,8 @@ class Game:
         return random.shuffle(self.deck)
 
     def gameSetup(self, player, dealer):
+        if len(self.deck) < 10:
+            self.deck = list(cards.keys())
         self.getDeck()
         player.hand = [self.deck.pop(-4), self.deck.pop(-2)]
         dealer.hand = [self.deck.pop(-3), self.deck.pop(-1)]
@@ -53,7 +55,7 @@ class Game:
         player.handValue += cards[card]
         return
 
-    def playerEval(self, player, dealer):
+    def playerEval(self, player):
         response = 'a'
         while response.lower() != 's':
             response = input(f' You have {player.handValue}. Do you want to hit or stand? (h/s) ')
@@ -71,7 +73,7 @@ class Game:
                 print("Please enter 'h' for hit or 's' for stand.")
         return
 
-    def dealerEval(self, dealer, player):
+    def dealerEval(self, dealer):
         print(f"Dealer has revealed {dealer.hand[0]}. That makes Dealer's total {dealer.handValue}")
         while dealer.handValue < 17:
             self.dealerHit(dealer)
@@ -85,14 +87,17 @@ class Game:
         return
 
     def handOver(self, player, dealer):
-        if dealer.handValue > 21:
+        if player.handValue > 21 and dealer.handValue > 21:
+            print('You and the dealer both busted, you push.')
+            player.pushes
+        elif dealer.handValue > 21:
             print('Dealer busts, you win!!')
             player.wins += 1
         elif player.handValue > 21:
             print('You busted :(')
             player.losses += 1
         elif player.handValue > dealer.handValue:
-            print(f"You has won with {player.handValue}, which beats Dealer's {dealer.handValue}.")
+            print(f"You have won with {player.handValue}, which beats Dealer's {dealer.handValue}.")
             player.wins += 1
         elif dealer.handValue > player.handValue:
             print(f'Dealer has won with {dealer.handValue}, which beats your {player.handValue}.')
@@ -100,9 +105,6 @@ class Game:
         elif player.handValue == dealer.handValue:
             print(f'You and the Dealer both have {player.handValue}. You pushed.')
             player.pushes += 1
-        elif player.handValue > 21 and dealer.handValue > 21:
-            print('You and the dealer both busted, you push.')
-            player.pushes
         return
 
 
@@ -135,14 +137,17 @@ dealer = Dealer()
 blackjack = Game(player, dealer)
 while True:
     blackjack.gameSetup(player, dealer)
-    blackjack.playerEval(player, dealer)
-    blackjack.dealerEval(dealer, player)
+    blackjack.playerEval(player)
+    blackjack.dealerEval(dealer)
     blackjack.handOver(player, dealer)
-    quit = input('Do you want to play again? (y/n) ')
-    if quit.lower() == 'n':
-        print('Here are your stats: ')
-        print(f'For player: {name}\nWins: {player.wins}\nLosses: {player.losses}\nPushes: {player.pushes}')
-        break
-    elif quit.lower() == 'y':
-        continue
+    while True:
+        playAgain = input('Do you want to play again? (y/n) ')
+        if playAgain.lower() == 'n':
+            print('Here are your stats: ')
+            print(f'For player: {name}\nWins: {player.wins}\nLosses: {player.losses}\nPushes: {player.pushes}')
+            raise SystemExit
+        elif playAgain.lower() == 'y':
+            break
+        else:
+            print('Please enter either "y" for yes or "n" for no.')
 
